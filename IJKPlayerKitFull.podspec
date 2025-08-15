@@ -23,6 +23,7 @@ Pod::Spec.new do |ijk|
   ijk.source       = { :http => "https://github.com/aiguanren/IJKPlayerKit/releases/download/1.0.0/IJKPlayerKit.zip" }
   ijk.swift_versions = "5.0"
   ijk.requires_arc = true
+  ijk.static_framework = true
   ijk.vendored_frameworks = "IJKPlayerKit/arm64&x86_64/IJKMediaPlayer.xcframework"
 
   # 系统库
