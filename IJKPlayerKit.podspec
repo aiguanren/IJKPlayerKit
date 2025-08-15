@@ -1,7 +1,7 @@
 Pod::Spec.new do |ijk|
 
   ijk.name         = "IJKPlayerKit"
-  ijk.version      = "1.0.2"
+  ijk.version      = "1.0.2.1"
   ijk.summary      = "基于IJKPlayer编译封装的直播播放器(也可作为视屏播放器)，支持RTMP/RTMPS/RTMPT/RTMPE/RTSP/HLS/HTTP(S)-FLV/KMP 等直播协议与MP4、FLV等格式， 支持录屏功能"
   ijk.description  = <<-DESC
                           集成注意事项：
