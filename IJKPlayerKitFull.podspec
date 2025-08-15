@@ -31,5 +31,12 @@ Pod::Spec.new do |ijk|
 
   # 系统框架
   ijk.frameworks = "UIKit", "AudioToolbox", "CoreGraphics", "AVFoundation", "CoreMedia", "CoreVideo", "MediaPlayer", "CoreServices", "Metal", "QuartzCore", "VideoToolbox"
+
+  # 设置编译环境
+  ijk.pod_target_xcconfig = {
+    "EXCLUDED_ARCHS[sdk=iphonesimulator*]" => "arm64", # 过滤模拟器arm64，解决M系列芯片MAC上模拟器架构问题
+    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) WYBasisKit_Supports_MediaPlayer_Full=1",  # 用于 Objective-C 的 #if 判断
+    "SWIFT_ACTIVE_COMPILATION_CONDITIONS" => "$(inherited) WYBasisKit_Supports_MediaPlayer_Full", # 用于 Swift 的 #if 判断（注意不带 =1，就是直接使用宏名即可）
+  }
   
 end
