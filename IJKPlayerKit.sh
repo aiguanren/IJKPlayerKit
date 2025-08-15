@@ -27,7 +27,7 @@ FRAMEWORK_DIR="./$TARGETNAME"        # 解压后的目标目录
 ZIP_URL="https://github.com/aiguanren/IJKPlayerKit/releases/download/1.0.0/IJKPlayerKit.zip"  # 下载链接
 ZIP_PATH="./$TARGETNAME.zip"         # ZIP 包保存路径
 UNZIP_TEMP_DIR="$FRAMEWORK_DIR/__temp__"                # 解压临时目录
-MAX_INTERVAL_HOURS=5                 # 最大允许的间隔时间（小时）超过则强制重新下载
+MAX_INTERVAL_HOURS=0                 # 最大允许的间隔时间（小时）超过则强制重新下载（<=0 表示无限大）
 
 printf '⏩ 当前路径: %s\n' "$(pwd)"
 
@@ -68,15 +68,19 @@ if [[ $LAST_TS -eq 0 ]]; then
 elif [[ "$LOCAL_EXIST" = false ]]; then
   NEED_DOWNLOAD=true
   printf '🔍 本地未发现 %s\n' "$TARGETNAME"
-elif [[ $DIFF_HOURS -ge $MAX_INTERVAL_HOURS ]]; then
+elif [[ $MAX_INTERVAL_HOURS -gt 0 && $DIFF_HOURS -ge $MAX_INTERVAL_HOURS ]]; then
   NEED_DOWNLOAD=true
   printf '⏰ 本地已存在 %s，但距离上次下载时间间隔已超过 %s小时%s分(默认间隔时间为%s小时)\n' \
          "$TARGETNAME" "$DIFF_HOURS" "$DIFF_MINUTES" "$MAX_INTERVAL_HOURS"
 fi
 
 if ! $NEED_DOWNLOAD; then
-  printf '💼 本地已存在 %s，且距离上次下载时间间隔不超过 %s 小时（当前间隔 %s小时%s分），本次无需下载\n' \
-         "$TARGETNAME" "$MAX_INTERVAL_HOURS" "$DIFF_HOURS" "$DIFF_MINUTES"
+  if [[ $MAX_INTERVAL_HOURS -le 0 ]]; then
+    printf '💼 本地已存在 %s，且已设置为无限间隔模式（MAX_INTERVAL_HOURS<=0），本次无需下载\n' "$TARGETNAME"
+  else
+    printf '💼 本地已存在 %s，且距离上次下载时间间隔不超过 %s 小时（当前间隔 %s小时%s分），本次无需下载\n' \
+           "$TARGETNAME" "$MAX_INTERVAL_HOURS" "$DIFF_HOURS" "$DIFF_MINUTES"
+  fi
   exit 0
 fi
 
@@ -103,4 +107,4 @@ fi
 
 printf '✅ %s下载完成（已更新/记录本次下载时间戳到当前脚本文件中）\n' "$TARGETNAME"
 
-# LAST_DOWNLOAD_TIMESTAMP=1755236376
+# LAST_DOWNLOAD_TIMESTAMP=1755237721
