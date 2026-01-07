@@ -21,9 +21,9 @@ Pod::Spec.new do |ijk|
   ijk.ios.deployment_target = "13.0"      
 
   ijk.source       = { :http => "https://github.com/aiguanren/IJKPlayerKit/releases/download/1.0.0/IJKPlayerKit.zip" }
-  ijk.swift_versions = "5.0"
+  ijk.swift_versions = ["5"]
   ijk.requires_arc = true
-  ijk.static_framework = true
+  #ijk.static_framework = true
   ijk.vendored_frameworks = "IJKPlayerKit/arm64/IJKMediaPlayer.xcframework"
 
   # 系统库
@@ -35,8 +35,6 @@ Pod::Spec.new do |ijk|
   # 设置编译环境
   ijk.pod_target_xcconfig = {
     "EXCLUDED_ARCHS[sdk=iphonesimulator*]" => "arm64", # 过滤模拟器arm64，解决M系列芯片MAC上模拟器架构问题
-    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) WYBasisKit_Supports_MediaPlayer_Lite=1",  # 用于 Objective-C 的 #if 判断
-    "SWIFT_ACTIVE_COMPILATION_CONDITIONS" => "$(inherited) WYBasisKit_Supports_MediaPlayer_Lite", # 用于 Swift 的 #if 判断（注意不带 =1，就是直接使用宏名即可）
     # 模拟器环境下清空IJKPlayerKitLite.xcframework相关的链接，避免链接导致的验证不通过与编译错误
     "OTHER_LDFLAGS[sdk=iphonesimulator*]" => "",
     "LD_RUNPATH_SEARCH_PATHS[sdk=iphonesimulator*]" => "",

@@ -21,9 +21,9 @@ Pod::Spec.new do |ijk|
   ijk.ios.deployment_target = "13.0"      
 
   ijk.source       = { :http => "https://github.com/aiguanren/IJKPlayerKit/releases/download/1.0.0/IJKPlayerKit.zip" }
-  ijk.swift_versions = "5.0"
+  ijk.swift_versions = ["5"]
   ijk.requires_arc = true
-  ijk.static_framework = true
+  #ijk.static_framework = true
   ijk.vendored_frameworks = "IJKPlayerKit/arm64&x86_64/IJKMediaPlayer.xcframework"
 
   # 系统库
@@ -31,12 +31,5 @@ Pod::Spec.new do |ijk|
 
   # 系统框架
   ijk.frameworks = "UIKit", "AudioToolbox", "CoreGraphics", "AVFoundation", "CoreMedia", "CoreVideo", "MediaPlayer", "CoreServices", "Metal", "QuartzCore", "VideoToolbox"
-
-  # 设置编译环境
-  ijk.pod_target_xcconfig = {
-    "EXCLUDED_ARCHS[sdk=iphonesimulator*]" => "arm64", # 过滤模拟器arm64，解决M系列芯片MAC上模拟器架构问题
-    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) WYBasisKit_Supports_MediaPlayer_Full=1",  # 用于 Objective-C 的 #if 判断
-    "SWIFT_ACTIVE_COMPILATION_CONDITIONS" => "$(inherited) WYBasisKit_Supports_MediaPlayer_Full", # 用于 Swift 的 #if 判断（注意不带 =1，就是直接使用宏名即可）
-  }
   
 end
