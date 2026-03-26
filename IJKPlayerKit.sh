@@ -24,12 +24,31 @@ export LANG=en_US.UTF-8
 TARGETNAME="IJKPlayerKit"            # 要下载的资源的名字
 SCRIPT_PATH="${BASH_SOURCE[0]}"      # 当前脚本路径（用于更新时间戳）
 FRAMEWORK_DIR="./$TARGETNAME"        # 解压后的目标目录
-ZIP_URL="https://github.com/aiguanren/IJKPlayerKit/releases/download/1.0.0/IJKPlayerKit.zip"  # 下载链接
+
+# podspec 文件路径（默认同级目录）
+PODSPEC_PATH="./IJKPlayerKit.podspec"
+
+# 从 podspec 中提取 version
+if [[ -f "$PODSPEC_PATH" ]]; then
+  POD_VERSION=$(grep -E '^[[:space:]]*ijk\.version[[:space:]]*=' "$PODSPEC_PATH" | sed -E 's/.*"([^"]+)".*/\1/')
+else
+  printf '❌ 未找到 podspec 文件: %s\n' "$PODSPEC_PATH"
+  exit 1
+fi
+
+if [[ -z "$POD_VERSION" ]]; then
+  printf '❌ 无法从 podspec 中解析 version\n'
+  exit 1
+fi
+
+# 🔄【修改】使用 podspec 中的 version 动态拼接下载地址
+ZIP_URL="https://github.com/aiguanren/IJKPlayerKit/releases/download/${POD_VERSION}/IJKPlayerKit.zip"
+
 ZIP_PATH="./$TARGETNAME.zip"         # ZIP 包保存路径
 UNZIP_TEMP_DIR="$FRAMEWORK_DIR/__temp__"                # 解压临时目录
 MAX_INTERVAL_HOURS=0                 # 最大允许的间隔时间（小时）超过则强制重新下载（<=0 表示无限大）
 
-printf '⏩ 当前路径: %s\n' "$(pwd)"
+printf '⏩ 当前路径: %s\n，版本: %s\n' "$(pwd)" "$POD_VERSION"
 
 # ————— 如果本地存在 TARGETNAME.zip 则跳过下载(直接解压) ————— #
 if [[ -f "$ZIP_PATH" ]]; then
@@ -107,4 +126,4 @@ fi
 
 printf '✅ %s下载完成（已更新/记录本次下载时间戳到当前脚本文件中）\n' "$TARGETNAME"
 
-# LAST_DOWNLOAD_TIMESTAMP=1774505335
+# LAST_DOWNLOAD_TIMESTAMP=1774511303
