@@ -1,7 +1,7 @@
 Pod::Spec.new do |ijk|
 
   ijk.name         = "IJKPlayerKit"
-  ijk.version      = "1.0.4"
+  ijk.version      = "1.0.8"
   ijk.summary      = "基于IJKPlayer编译封装的直播播放器(也可作为视屏播放器)，支持RTMP/RTMPS/RTMPT/RTMPE/RTSP/HLS/HTTP(S)-FLV/KMP 等直播协议与MP4、FLV等格式， 支持录屏功能"
   ijk.description  = <<-DESC
                           集成注意事项：
@@ -21,13 +21,13 @@ Pod::Spec.new do |ijk|
   ijk.ios.deployment_target = "13.0"
   # tvOS 最低版本
   ijk.tvos.deployment_target = "12.0"
-  # macOS 最低版本      
-  ijk.osx.deployment_target = "10.11"        
+  # macOS 最低版本
+  ijk.osx.deployment_target = "10.14"
 
-  ijk.source       = { :http => "https://github.com/aiguanren/IJKPlayerKit/releases/download/1.0.0/IJKPlayerKit.zip" }
+  ijk.source       = { :http => "https://github.com/aiguanren/IJKPlayerKit/releases/download/1.0.8/IJKPlayerKit.zip" }
   ijk.swift_versions = ["5"]
   ijk.requires_arc = true
-  ijk.vendored_frameworks = "IJKPlayerKit/fs/FSPlayer.xcframework"
+  ijk.vendored_frameworks = "IJKPlayerKit/IJKPlayerKit.xcframework"
 
   # 共有的系统库
   ijk.libraries = "c++", "z", "bz2", "iconv", "xml2", "lzma"
