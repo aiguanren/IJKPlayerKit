@@ -2,7 +2,7 @@ Pod::Spec.new do |ijk|
 
   ijk.name         = "IJKPlayerKit"
   ijk.version      = "1.0.8"
-  ijk.summary      = "基于IJKPlayer编译封装的直播播放器(也可作为视屏播放器)，支持RTMP/RTMPS/RTMPT/RTMPE/RTSP/HLS/HTTP(S)-FLV/KMP 等直播协议与MP4、FLV等格式， 支持录屏功能"
+  ijk.summary      = "基于IJKPlayer编译封装的直播播放器(也可作为视屏播放器)，支持 file、http、https、udp、rtmp、rtmps、rtp、rtsp、bluray、smb、ftp 等协议，支持播放图片，支持设置视频背景颜色（默认黑色），支持录制视频，iOS保存到相册可播放，支持设置视频显示比例等"
   ijk.description  = <<-DESC
                           集成注意事项：
                           使用cocoapods官方源
@@ -14,7 +14,7 @@ Pod::Spec.new do |ijk|
   ijk.homepage     = "https://github.com/aiguanren/WYBasisKit-swift"
   ijk.license      = { :type => "MIT", :file => "IJKPlayerKit/License.md" }
   ijk.resource_bundles = {"IJKPlayerKit" => [
-    "IJKPlayerKit/PrivacyInfo.xcprivacy"
+    "PrivacyInfo.xcprivacy"
   ]}
 
   # iOS 最低版本
