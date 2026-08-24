@@ -16,7 +16,7 @@ Pod::Spec.new do |ijk|
   ijk.homepage     = "https://github.com/aiguanren/WYBasisKit-swift"
   ijk.license      = { :type => "MIT", :file => "IJKPlayerKit/License.md" }
   ijk.resource_bundles = {"IJKPlayerKit" => [
-    "PrivacyInfo.xcprivacy"
+    "IJKPlayerKit/PrivacyInfo.xcprivacy"
   ]}
 
   # iOS 最低版本
