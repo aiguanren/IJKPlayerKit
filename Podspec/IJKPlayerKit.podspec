@@ -26,7 +26,7 @@ Pod::Spec.new do |ijk|
   # macOS 最低版本
   ijk.osx.deployment_target = "10.14"
 
-  ijk.source       = { :http => "https://github.com/aiguanren/IJKPlayerKit/releases/download/#{ijk.version}/IJKPlayerKit.zip" }
+  ijk.source       = { :http => "https://github.com/aiguanren/IJKPlayerKit/releases/download/#{ijk.version}/Frameworks.zip" }
   ijk.swift_versions = ["5.0"]
   ijk.requires_arc = true
   ijk.vendored_frameworks = "IJKPlayerKit/Frameworks/IJKPlayerKit.xcframework"
