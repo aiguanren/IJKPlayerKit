@@ -69,4 +69,4 @@
 !**/Gemfile.lock
 
 # 其他需要自定义忽略的文件或文件夹
-IJKPlayerKit
+Frameworks
