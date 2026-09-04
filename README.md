@@ -91,7 +91,7 @@
 
 - [x] 4、创建{ijk.version}对应版本的Tag
 
-- [x] 5、Release title 写 IJKPlayerKit，Release notes 写 基于IJKPlayer编译封装的直播播放器(也可作为视屏播放器)，支持RTMP/RTMPS/RTMPT/RTMPE/RTSP/HLS/HTTP(S)-FLV/KMP 等直播协议与MP4、FLV等格式， 支持录屏功能
+- [x] 5、Release title 留空，Release notes 写 基于IJKPlayer编译封装的直播播放器(也可作为视屏播放器)，支持RTMP/RTMPS/RTMPT/RTMPE/RTSP/HLS/HTTP(S)-FLV/KMP 等直播协议与MP4、FLV等格式， 支持录屏功能
 
 - [x] 6、点击 Attach binaries by dropping them here or selecting them. ，然后将步骤2的压缩包上传并等待上传成功
 
