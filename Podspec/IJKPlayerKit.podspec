@@ -14,9 +14,9 @@ Pod::Spec.new do |ijk|
 
   ijk.author       = { "官人" => "aiguanren@icloud.com" }
   ijk.homepage     = "https://github.com/aiguanren/WYBasisKit-swift"
-  ijk.license      = { :type => "MIT", :file => "Frameworks/License.md" }
+  ijk.license      = { :type => "MIT", :file => "IJKPlayerKit/License.md" }
   ijk.resource_bundles = {"IJKPlayerKit" => [
-    "IJKPlayerKit/Frameworks/PrivacyInfo.xcprivacy"
+    "IJKPlayerKit/PrivacyInfo.xcprivacy"
   ]}
 
   # iOS 最低版本
@@ -26,10 +26,10 @@ Pod::Spec.new do |ijk|
   # macOS 最低版本
   ijk.osx.deployment_target = "10.14"
 
-  ijk.source       = { :http => "https://github.com/aiguanren/IJKPlayerKit/releases/download/#{ijk.version}/Frameworks.zip" }
+  ijk.source       = { :http => "https://github.com/aiguanren/IJKPlayerKit/releases/download/#{ijk.version}/IJKPlayerKit.zip" }
   ijk.swift_versions = ["5.0"]
   ijk.requires_arc = true
-  ijk.vendored_frameworks = "Frameworks/IJKPlayerKit.xcframework"
+  ijk.vendored_frameworks = "IJKPlayerKit/IJKPlayerKit.xcframework"
 
   # 共有的系统库
   ijk.libraries = "c++", "z", "bz2", "iconv", "xml2", "lzma"

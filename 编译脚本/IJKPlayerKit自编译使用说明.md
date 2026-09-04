@@ -53,31 +53,31 @@ cd ~/Desktop/官人/IJKPlayerKit/构建脚本
 
 ```
 ~/Desktop/IJKPlayerKit/
-├── fsplayer/            ← 源码仓库(git)。想改播放器内核代码在这里改
+├── FSPlayer/            ← 源码仓库(git)。想改播放器内核代码在这里改
 │   ├── ijkmedia/          (播放器/渲染/字幕等 C 源码，内核逻辑在此)
 │   ├── FFToolChain/       (构建工具链；build/product/ 下是下载好的预编译库)
 │   ├── FSPlayer.yml       (xcodegen 工程定义，构建时会被自动改名为你的目标名)
 │   └── examples/          (各平台构建脚本与产物中转目录)
 ├── Xcode工程/            ← 编译工程入口(IJKPlayerKit.xcodeproj，软链到源码仓内自动生成的工程)，
 │                            双击即可在 Xcode 里浏览代码、修改、直接 IDE 构建
-├── frameworks/          ← 编译产物：IJKPlayerKit.xcframework(或散包) + 构建信息.txt
-├── 预编译依赖库/         ← 软链 → fsplayer/FFToolChain/build/product（ffmpeg/ass 等官方预编译包的实际位置）
+├── IJKPlayerKit/          ← 编译产物：IJKPlayerKit.xcframework(或散包) + 构建信息.txt + README.md(自动采集上游)
+├── 预编译依赖库/         ← 软链 → FSPlayer/FFToolChain/build/product（ffmpeg/ass 等官方预编译包的实际位置）
 └── README.md            ← 工作区自带说明（改代码重编译流程）
 ```
 
 **改代码后重新编译**：
 
 ```bash
-# 1. 在 IJKPlayerKit/fsplayer/ 里改源码（如 ijkmedia/ 下的内核代码）
+# 1. 在 IJKPlayerKit/FSPlayer/ 里改源码（如 ijkmedia/ 下的内核代码）
 # 2. 重跑脚本——会自动检测到你的修改并保留（跳过版本更新），直接基于修改后的代码构建：
 bash ~/Desktop/官人/IJKPlayerKit/构建脚本/BuildIJKPlayerKit.sh -y
-# 3. 新产物仍输出在 IJKPlayerKit/frameworks/
+# 3. 新产物仍输出在 IJKPlayerKit/IJKPlayerKit/（xcframework + 构建信息.txt）
 ```
 
 > 脚本会自动区分「你的修改」和「脚本自己的改名改动」：你的修改永远不被还原；
-> 想放弃修改回到上游状态：`cd IJKPlayerKit/fsplayer && git checkout -- . && git clean -fd`（之后**务必重跑一次脚本**，让源码改名与 Xcode 工程重新对齐，否则 IDE 编不过）
+> 想放弃修改回到上游状态：`cd IJKPlayerKit/FSPlayer && git checkout -- . && git clean -fd`（之后**务必重跑一次脚本**，让源码改名与 Xcode 工程重新对齐，否则 IDE 编不过）
 
-> 首次运行新脚本时，若检测到旧版脚本的源码位置（~/Desktop/官人/fsplayer）会**自动迁移**到新工作区，已下载的依赖库缓存一并保留，不会重新下载。
+> 首次运行新脚本时，若检测到旧版脚本的源码位置（~/Desktop/官人/FSPlayer）会**自动迁移**到新工作区，已下载的依赖库缓存一并保留，不会重新下载。
 
 ## 三、参数一览
 
@@ -124,7 +124,7 @@ bash ~/Desktop/官人/IJKPlayerKit/构建脚本/BuildIJKPlayerKit.sh -y
 
 ### xcframework 模式
 
-输出 `<工作区>/frameworks/<名称>.xcframework`，结尾会打印切片清单，例如：
+输出 `<工作区>/IJKPlayerKit/IJKPlayerKit.xcframework`，结尾会打印切片清单，例如：
 
 ```
 arm64 ios
@@ -136,13 +136,13 @@ arm64 x86_64 macos
 
 ### framework 模式
 
-输出 `<工作区>/frameworks/<名称>-frameworks/` 下按切片分目录：
+输出 `<工作区>/IJKPlayerKit/IJKPlayerKit-Frameworks/` 下按切片分目录：
 
 ```
 IJKPlayerKit/
-└── frameworks/
+└── IJKPlayerKit/
     ├── IJKPlayerKit.xcframework         (xcframework 模式时)
-    └── IJKPlayerKit-frameworks/         (framework 模式时)
+    └── IJKPlayerKit-Frameworks/         (framework 模式时)
         ├── ios-device/IJKPlayerKit.framework
         ├── ios-simulator/IJKPlayerKit.framework
         ├── tvos-device/IJKPlayerKit.framework
@@ -150,7 +150,9 @@ IJKPlayerKit/
         └── macos/IJKPlayerKit.framework
 ```
 
-`frameworks/构建信息.txt` 记录本次构建的时间、FSPlayer 版本(commit)、参数与切片清单，方便追溯。
+`IJKPlayerKit/构建信息.txt` 记录本次构建的时间、FSPlayer 版本(commit)、参数与切片清单，方便追溯。
+
+`IJKPlayerKit/README.md` 每次构建自动采集上游 README 生成（会覆盖上次的）：标题替换为 `前缀+Player`（默认 `IJKPlayer`）；保留徽章、功能清单、最新支持、构建环境+平台表；裁掉 star 名单横幅、调研中、迁移指南、更新记录、集成、编译步骤、FSPlayer-Pro 等上游专属章节。采集来源优先用本地源码仓里的 README（与编译版本精确对应），本地缺失时按 commit 号回源 GitHub 抓取。
 
 ### 命名机制（重要认知）
 
@@ -172,7 +174,7 @@ IJKPlayerKit/
 
 ### 2. 选哪个 target？——只选一个，不用三个都选
 
-三个 target（`IJKPlayerKit-iOS` / `IJKPlayerKit-macOS` / `IJKPlayerKit-tvOS`）**编译的是同一份源码文件**（都在 `fsplayer/ijkmedia/` 下），它们之间只有平台差异（SDK、部署目标、各平台排除的少量专属文件）。因此：
+三个 target（`IJKPlayerKit-iOS` / `IJKPlayerKit-macOS` / `IJKPlayerKit-tvOS`）**编译的是同一份源码文件**（都在 `FSPlayer/ijkmedia/` 下），它们之间只有平台差异（SDK、部署目标、各平台排除的少量专属文件）。因此：
 
 - **改的是公共代码**（绝大多数情况）：选你最关心的一个 target 验证即可，通常选 `IJKPlayerKit-iOS`，右上角 destination 选任意 iPhone 模拟器
 - **改的是平台专属文件**（如 `ijksdl_gpu_opengl_*macos*` 只有 macOS target 编译、`ijksdl_vout_ios_gles2` 只有 iOS）：切到对应平台 target 验证
@@ -180,7 +182,7 @@ IJKPlayerKit/
 
 ### 3. 改哪里？——就是工程里看到的那些文件，直接改
 
-在 Xcode 左侧文件树里看到的 `ijkmedia/...` 文件，**就是磁盘上 `fsplayer/ijkmedia/` 里的同一份文件**（工程引用而非拷贝）。在 Xcode 里改 = 直接改源文件；用其他编辑器改磁盘上的文件，Xcode 也会自动刷新。两边等价，不会出现"改了两份"的问题。
+在 Xcode 左侧文件树里看到的 `ijkmedia/...` 文件，**就是磁盘上 `FSPlayer/ijkmedia/` 里的同一份文件**（工程引用而非拷贝）。在 Xcode 里改 = 直接改源文件；用其他编辑器改磁盘上的文件，Xcode 也会自动刷新。两边等价，不会出现"改了两份"的问题。
 
 快速定位（改哪类东西去哪）：
 
@@ -203,7 +205,7 @@ IJKPlayerKit/
 bash ~/Desktop/官人/IJKPlayerKit/构建脚本/BuildIJKPlayerKit.sh -y
 ```
 
-脚本会自动检测到你的修改并保留（跳过版本更新），在修改后的代码上重新编译所有配置的平台，产物输出到 `frameworks/`。若 Xcode 正开着工程，脚本跑完后关掉重开一次（工程文件被重新生成了）。
+脚本会自动检测到你的修改并保留（跳过版本更新），在修改后的代码上重新编译所有配置的平台，产物输出到 `IJKPlayerKit/`（xcframework 模式）或 `IJKPlayerKit-Frameworks/`（散包模式）。若 Xcode 正开着工程，脚本跑完后关掉重开一次（工程文件被重新生成了）。
 
 ### 5. 另外两个 target 要不要同步修改？
 
@@ -212,7 +214,7 @@ bash ~/Desktop/官人/IJKPlayerKit/构建脚本/BuildIJKPlayerKit.sh -y
 ### 6. 注意事项
 
 - **别在改完代码后手动 `git checkout`/`git clean` 还原源码**——会把改名对齐打破（IDE 编不过），要还原就还原后重跑脚本
-- **想长期保留修改**：工作区随时可删（删了修改就没了），建议 fork 上游仓库、把修改提交进去，之后用 `-r 你的fork地址` 构建；或至少把 `fsplayer/` 里的改动定期备份
+- **想长期保留修改**：工作区随时可删（删了修改就没了），建议 fork 上游仓库、把修改提交进去，之后用 `-r 你的fork地址` 构建；或至少把 `FSPlayer/` 里的改动定期备份
 - 每次脚本运行都会**重新生成 Xcode 工程**（源码改名后文件名变了，工程必须跟着重建），这是正常行为
 
 ## 六、脚本做了什么（原理速览）
@@ -226,8 +228,8 @@ bash ~/Desktop/官人/IJKPlayerKit/构建脚本/BuildIJKPlayerKit.sh -y
    - 头文件里的 `<FSPlayer/` 前缀 import
    - examples 里指向根工程的软链
 4. **下载依赖**：`FFToolChain main.sh install` 下载官方预编译库（ass 全家桶 + ffmpeg8 全家桶，含 openssl/webp/smb2 等），并校验产物落位（下载 404 会显式报错，不会静默继续）
-5. **生成工程 + 编译**：根目录 `generate-proj.sh` 生成工程，按平台/切片逐个 `xcodebuild`（日志落 `/tmp/fsplayer-build-*.log`，失败即停）
-6. **合包输出**：xcframework 用上游 `make-xcframework.sh`（自动跳过未构建的切片），拷贝到输出目录并打印切片清单与验证命令
+5. **生成工程 + 编译**：根目录 `generate-proj.sh` 生成工程，按平台/切片逐个 `xcodebuild`（日志落 `/tmp/FSPlayer-build-*.log`，失败即停）
+6. **合包输出**：xcframework 用上游 `make-xcframework.sh`（自动跳过未构建的切片），拷贝到输出目录并打印切片清单与验证命令；随后生成构建信息.txt，并采集上游 README 生成产物 README.md
 
 ## 七、常见问题（FAQ）
 
@@ -274,7 +276,7 @@ Xcode 26 起 Metal 编译器是独立可下载组件。脚本会自动检测并�
 # 2. 一条命令出包（例如锁 1.0.9）
 ./BuildIJKPlayerKit.sh -v 1.0.9 -y
 
-# 3. 产物在 <工作区>/frameworks/，替换你 pod 仓库里的 xcframework，发新版即可
+# 3. 产物在 <工作区>/IJKPlayerKit/，替换你 pod 仓库里的 xcframework，发新版即可
 ```
 
 ---

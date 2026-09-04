@@ -5,12 +5,12 @@
 #
 #  工作区布局(<输出根目录>/<名称>/)：
 #    ├── FSPlayer/        源码仓库(git)，改代码在这里，改完重跑本脚本即重编译(脏树自动保留修改)
-#    ├── Frameworks/      编译产物 + 构建信息.txt
+#    ├── IJKPlayerKit/    编译产物 + 构建信息.txt + README.md(采集自上游；目录名跟随命名配置，可整体压缩为发布包)
 #    └── 预编译依赖库/     软链 → FSPlayer/FFToolChain/build/product(ffmpeg/ass等预编译包实际位置)
 #
 #  工作流程：准备源码(克隆或更新+切版本+子模块) → 还原源码为上游原始状态(有本地修改时跳过，保留修改直接构建)
 #  → 按目标名执行全套改名(yml/modulemap/打包脚本/头文件前缀/工程软链) → 下载预编译依赖库
-#  → 生成Xcode工程 → 按平台/架构逐切片编译 → 合包输出到 Frameworks/
+#  → 生成Xcode工程 → 按平台/架构逐切片编译 → 合包输出到 IJKPlayerKit/
 #
 set -euo pipefail
 
@@ -128,7 +128,7 @@ usage() {
 
 工作区布局: <输出根目录>/<名称>/
   FSPlayer/        源码仓库(改代码在这里，改完重跑本脚本即可重编译)
-  Frameworks/      编译产物 + 构建信息.txt
+  IJKPlayerKit/    编译产物 + 构建信息.txt + README.md(采集自上游；目录名跟随命名配置，可整体压缩为发布包)
   预编译依赖库/     软链 → 源码内 FFToolChain/build/product (ffmpeg/ass 等预编译包)
 
 选项:
@@ -538,11 +538,13 @@ done
 
 echo "▶ [7/7] 输出产物"
 
-FW_DIR="$OUTPUT_ROOT/$NAME/Frameworks"
+FW_DIR="$OUTPUT_ROOT/$NAME/$NAME"     # 产物目录与工作区同名(如 .../IJKPlayerKit/IJKPlayerKit/)，可整体压缩为发布包
 mkdir -p "$FW_DIR"
 
-# 清理另一输出形态的陈旧产物，保证 Frameworks/ 内容精确对应本次构建
+# 清理另一输出形态的陈旧产物，保证产物目录内容精确对应本次构建
 rm -rf "$FW_DIR/$NAME-Frameworks" "$FW_DIR/$NAME.xcframework"
+# 清理旧版本脚本输出的 Frameworks/ 目录(产物目录现已改名为 IJKPlayerKit/，随 -n 命名变化)
+rm -rf "$OUTPUT_ROOT/$NAME/Frameworks"
 
 if [[ "$TYPE" == "xcframework" ]]; then
     ( cd examples/xcframewrok && ./make-xcframework.sh > /tmp/FSPlayer-xcframework.log 2>&1 ) || {
@@ -610,6 +612,43 @@ ${SYMBOL_DESC}
 $SLICES
 INFO
 
+# 产物 README：自动采集上游 FSPlayer 的 README，按发布模板裁剪生成(每次构建重新生成覆盖)
+#   保留：徽章/功能清单/最新支持/构建环境+平台表，标题替换为本次命名
+#   裁掉：star 名单横幅、调研中、迁移指南、更新记录、集成、编译步骤、FSPlayer-Pro 等上游专属章节
+#   来源优先取本地源码仓的 README(与本次编译版本精确对应、离线可用)，本地缺失时按 commit 号回源 GitHub 抓取
+SRC_README="$WORKDIR/README.md"
+if [[ ! -f "$SRC_README" ]]; then
+    SRC_README="/tmp/FSPlayer-readme-${COMMIT}.md"
+    [[ -s "$SRC_README" ]] || curl -sSL -o "$SRC_README" "https://raw.githubusercontent.com/debugly/fsplayer/${COMMIT}/README.md" || true
+fi
+PRODUCT_README="$FW_DIR/README.md"
+if [[ -s "$SRC_README" ]]; then
+    # 标题：深度改名开启时用 前缀+Player(如 IJKPlayer，与手写发布 README 一致)，关闭时直接用产物名
+    if [[ "$RENAME_SYMBOLS" == "1" ]]; then
+        README_TITLE="${SYMBOL_PREFIX}Player"
+    else
+        README_TITLE="$NAME"
+    fi
+    awk -v title="$README_TITLE" '
+        /^调研中[[:space:]]*$/ { skip = 1; next }                # 调研中 到 构建环境 之间(含迁移指南)不要
+        skip && /^## 构建环境/ { skip = 0 }                       # 构建环境章节起恢复采集
+        skip { next }
+        /^## 更新记录/ { stop = 1 }                                # 更新记录及其后章节(集成/编译步骤/Pro版)不要
+        stop { next }
+        /reporoster\.com/ { dropblank = 1; next }                 # star 名单横幅不要
+        dropblank && /^[[:space:]]*$/ { dropblank = 0; next }     # 连带去掉横幅后的空行，保持单空行间距
+        dropblank { dropblank = 0 }
+        { sub(/<h1>[^<]*<\/h1>/, "<h1>" title "</h1>"); print }   # 标题替换为本次命名
+    ' "$SRC_README" > "$PRODUCT_README"
+    if grep -q "功能&特点" "$PRODUCT_README"; then
+        echo "  ✔ $PRODUCT_README (采集自上游 README，标题: ${README_TITLE})"
+    else
+        echo "  ⚠️ 产物 README 未采集到功能清单(上游 README 结构可能已调整)，请人工检查: $PRODUCT_README"
+    fi
+else
+    echo "  ⚠️ 本地与远端均未取到上游 README，跳过产物 README 生成"
+fi
+
 # 工作区说明(仅首次生成，不覆盖用户可能改过的版本)
 WS_README="$OUTPUT_ROOT/$NAME/README.md"
 if [[ ! -f "$WS_README" ]]; then
@@ -621,7 +660,7 @@ cat > "$WS_README" << README
 
 - \`FSPlayer/\` —— FSPlayer 源码仓库(git)。**想改播放器内核代码在这里改**（如 ijkmedia/ 下的 C 源码、渲染层等）
 - \`Xcode工程/\` —— 编译用的 Xcode 工程入口(软链到源码仓内自动生成的工程)，双击即可在 IDE 里浏览代码、修改、构建
-- \`Frameworks/\` —— 编译产物与构建信息(含模块名/符号前缀等关键信息)
+- \`${NAME}/\` —— 编译产物与构建信息(含模块名/符号前缀等关键信息；目录与工作区同名，可整体压缩为发布包)
 - \`预编译依赖库/\` —— 软链，指向源码内 FFToolChain/build/product（ffmpeg/ass 等官方预编译包的实际位置）
 
 ## 修改代码后重新编译
@@ -630,7 +669,7 @@ cat > "$WS_README" << README
 # 1. 在 FSPlayer/ 里修改源码
 # 2. 重跑构建脚本(会自动检测到本地修改并保留，跳过版本更新)：
 bash "${SCRIPT_PATH}" -y
-# 3. 产物在 Frameworks/
+# 3. 产物在 ${NAME}/
 
 # 放弃自己的修改、回到上游状态(之后务必重跑一次构建脚本，让源码改名与Xcode工程重新对齐)：
 cd FSPlayer && git checkout -- . && git clean -fd
@@ -652,7 +691,7 @@ echo "==================== ✅ 构建完成 ===================="
 echo "工作区: $OUTPUT_ROOT/$NAME/"
 echo "  ├── FSPlayer/        源码(改代码在这里)"
 echo "  ├── Xcode工程/        编译工程入口(双击 $NAME.xcodeproj 可在IDE浏览/构建)"
-echo "  ├── Frameworks/      产物(见构建信息.txt)"
+echo "  ├── $NAME/          产物(见构建信息.txt、README.md)"
 echo "  └── 预编译依赖库/     ffmpeg/ass 等预编译包(软链)"
 if [[ "$RENAME_SYMBOLS" == "1" ]]; then
     echo "模块名(import用): $NAME  |  符号前缀: $SYMBOL_PREFIX(类名如 ${SYMBOL_PREFIX}Player)与${SYMBOL_PREFIX_LOWER}_小写工具函数"

@@ -1,0 +1,14 @@
+产物名称: IJKPlayerKit
+构建时间: 2026-09-04 14:28:32
+FSPlayer 版本: 1.1.0 (commit 2308d717)
+源码仓库: https://github.com/debugly/fsplayer.git
+FFmpeg: 随仓库配置(ass ffmpeg8)，产物见 ../预编译依赖库/
+输出类型: xcframework
+平台: ios,tvos,macos (含模拟器: 1)
+模块名(import用): IJKPlayerKit (深度改名已开启：类名/日志/文件名等均为 IJK 前缀，如 IJKPlayer/IJKOptions；小写工具函数为 ijk 前缀)
+切片:
+    arm64 x86_64 tvos simulator
+    arm64 ios 
+    arm64 x86_64 ios simulator
+    arm64 tvos 
+    arm64 x86_64 macos 

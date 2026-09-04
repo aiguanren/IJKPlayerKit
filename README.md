@@ -41,7 +41,7 @@
 
     每次使用BuildIJKPlayerKit.sh编译成功后自动生成，值得注意的是每次生成后需要用新生成的Xcode工程替换现有的Xcode工程
 
-- [x] Frameworks
+- [x] IJKPlayerKit
 
   - [x] IJKPlayerKit.xcframework
 
@@ -61,7 +61,7 @@
 
   - [x] README.md
 
-    IJKPlayerKit.podspec所需要的README文件，视情况可编辑修改
+    IJKPlayerKit.podspec所需要的README文件，每次使用BuildIJKPlayerKit.sh编译成功后自动生成，值得注意的是每次生成后需要用新生成的构建信息.txt替换现有的构建信息.txt
 
 
 
@@ -85,7 +85,7 @@
 
 - [x] 1、将IJKPlayer提交至https://github.com/aiguanren/IJKPlayerKit.git
 
-- [x] 2、将IJKPlayerKit下面的Frameworks压缩成.zip包
+- [x] 2、将IJKPlayerKit下面的IJKPlayerKit(包含framework的文件夹)压缩成.zip包
 
 - [x] 3、打开https://github.com/aiguanren/IJKPlayerKit 然后点击 [Create a new release](https://github.com/aiguanren/IJKPlayerKit/releases/new)
 
