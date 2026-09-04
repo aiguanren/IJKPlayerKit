@@ -4,13 +4,13 @@
 #  基于 debugly/FSPlayer 源码，自定义命名编译 framework / xcframework 的一键脚本
 #
 #  工作区布局(<输出根目录>/<名称>/)：
-#    ├── fsplayer/        源码仓库(git)，改代码在这里，改完重跑本脚本即重编译(脏树自动保留修改)
-#    ├── frameworks/      编译产物 + 构建信息.txt
-#    └── 预编译依赖库/     软链 → fsplayer/FFToolChain/build/product(ffmpeg/ass等预编译包实际位置)
+#    ├── FSPlayer/        源码仓库(git)，改代码在这里，改完重跑本脚本即重编译(脏树自动保留修改)
+#    ├── Frameworks/      编译产物 + 构建信息.txt
+#    └── 预编译依赖库/     软链 → FSPlayer/FFToolChain/build/product(ffmpeg/ass等预编译包实际位置)
 #
 #  工作流程：准备源码(克隆或更新+切版本+子模块) → 还原源码为上游原始状态(有本地修改时跳过，保留修改直接构建)
 #  → 按目标名执行全套改名(yml/modulemap/打包脚本/头文件前缀/工程软链) → 下载预编译依赖库
-#  → 生成Xcode工程 → 按平台/架构逐切片编译 → 合包输出到 frameworks/
+#  → 生成Xcode工程 → 按平台/架构逐切片编译 → 合包输出到 Frameworks/
 #
 set -euo pipefail
 
@@ -66,7 +66,7 @@ VERSION=""
 
 # 【仓库】FSPlayer 源码仓库地址，三种写法都支持：
 #   1. https 地址(默认)： 克隆 GitHub 上的官方仓库——公共仓库匿名克隆，不需要任何 git 账号/配置
-#   2. 本地目录路径：     如 REPO="$HOME/Desktop/官人/fsplayer"，从本地仓库克隆(速度极快，适合内网/离线，
+#   2. 本地目录路径：     如 REPO="$HOME/Desktop/官人/FSPlayer"，从本地仓库克隆(速度极快，适合内网/离线，
 #                          也适合"本地已有改好的仓库"的场景；更新走该本地仓库的 git pull)
 #   3. 你自己 fork 的地址：想长期保留源码修改，fork 后填你的仓库
 #   注意：只有"推送到你的 fork"才需要 git 账号；克隆(https/本地)都不需要
@@ -99,11 +99,11 @@ SKIP_METAL_CHECK=0
 RENAME_SYMBOLS=1
 
 # 【符号前缀】深度改名使用的目标前缀(仅 RENAME_SYMBOLS=1 时生效)，大小写保形：
-#   大写 FS→前缀原样(FSPlayer→IJKPlayer)、小写 fs→前缀小写(fs_hls→ijk_hls、fsplayer→ijkplayer)
+#   大写 FS→前缀原样(FSPlayer→IJKPlayer)、小写 fs→前缀小写(fs_hls→ijk_hls、FSPlayer→ijkplayer)
 #   示例： "IJK"(默认)；"MR"→MRPlayer/mr_hls；"XYZ"→XYZPlayer/xyz_hls
 #   规则： 字母开头，仅字母/数字/下划线
 #   安全边界：fsync/fstat/fseek 等 C 库函数与 fsr/fsh 等核心变量不受影响(小写字母跟随不替换)，
-#             只改 fs_下划线、fs大写驼峰、fsplayer/fsrecord/fsmux 整词
+#             只改 fs_下划线、fs大写驼峰、FSPlayer/fsrecord/fsmux 整词
 SYMBOL_PREFIX="IJK"
 
 # 【库集】FFToolChain 预编译库集
@@ -118,7 +118,7 @@ SYMBOL_PREFIX="IJK"
 LIBS="auto"
 
 # 由上面两项派生(不让用户直接配，避免源码与产物分家)
-WORKDIR="$OUTPUT_ROOT/$NAME/fsplayer"
+WORKDIR="$OUTPUT_ROOT/$NAME/FSPlayer"
 
 # ==================== 帮助 ====================
 
@@ -127,8 +127,8 @@ usage() {
 用法: $(basename "$0") [选项]
 
 工作区布局: <输出根目录>/<名称>/
-  fsplayer/        源码仓库(改代码在这里，改完重跑本脚本即可重编译)
-  frameworks/      编译产物 + 构建信息.txt
+  FSPlayer/        源码仓库(改代码在这里，改完重跑本脚本即可重编译)
+  Frameworks/      编译产物 + 构建信息.txt
   预编译依赖库/     软链 → 源码内 FFToolChain/build/product (ffmpeg/ass 等预编译包)
 
 选项:
@@ -190,7 +190,7 @@ if ! [[ "$SYMBOL_PREFIX" =~ ^[A-Za-z][A-Za-z0-9_]*$ ]]; then
 fi
 [[ "$PLATFORMS" == "all" ]] && PLATFORMS="ios,tvos,macos"
 
-WORKDIR="$OUTPUT_ROOT/$NAME/fsplayer"
+WORKDIR="$OUTPUT_ROOT/$NAME/FSPlayer"
 
 # ==================== 交互补问(未指定且非 -y 时) ====================
 
@@ -232,7 +232,7 @@ echo "工作区: $OUTPUT_ROOT/$NAME"
 echo "(高级项不逐项询问：库集LIBS/跳过更新/跳过Metal检查等，如需调整用命令行参数或改脚本配置区)"
 echo "======================================================="
 
-WORKDIR="$OUTPUT_ROOT/$NAME/fsplayer"
+WORKDIR="$OUTPUT_ROOT/$NAME/FSPlayer"
 
 # 本地仓库路径支持 ~ 写法(如 ~/Desktop/xxx)——放在询问之后，交互输入的本地路径同样生效
 REPO="${REPO/#\~/$HOME}"
@@ -276,7 +276,7 @@ if [[ ! -d "$WORKDIR/.git" ]]; then
         echo "  检测到本地仓库: $REPO (从本地克隆，无需网络拉取上游)"
     fi
     # 迁移：旧版脚本的默认源码位置(避免重复克隆、保留已下载的预编译库缓存)
-    OLD_DEFAULT="$HOME/Desktop/官人/fsplayer"
+    OLD_DEFAULT="$HOME/Desktop/官人/FSPlayer"
     if [[ -d "$OLD_DEFAULT/.git" && "$WORKDIR" != "$OLD_DEFAULT" ]]; then
         echo "  迁移旧源码目录: $OLD_DEFAULT → $WORKDIR (保留已下载的依赖库缓存)"
         mv "$OLD_DEFAULT" "$WORKDIR"
@@ -420,18 +420,18 @@ done
 if [[ "$RENAME_SYMBOLS" == "1" ]]; then
     SYMBOL_PREFIX_LOWER="$(echo "$SYMBOL_PREFIX" | tr '[:upper:]' '[:lower:]')"
     echo "  深度改名(大小写保形)：FS→${SYMBOL_PREFIX}、fs→${SYMBOL_PREFIX_LOWER} ..."
-    # 6.1 内容替换：ijkmedia 全部源码(含 .sh——version.sh 会在构建期生成版本宏头文件，宏名如 FSPLAYER_VERSION 也必须改，否则 ijkplayer.c 里改过的 IJKPLAYER_VERSION 无定义) + 根目录 modulemap，规则按序执行：
+    # 6.1 内容替换：ijkmedia 全部源码(含 .sh——version.sh 会在构建期生成版本宏头文件，宏名如 FSPlayer_VERSION 也必须改，否则 ijkplayer.c 里改过的 IJKPLAYER_VERSION 无定义) + 根目录 modulemap，规则按序执行：
     #     R1 大写符号：   FSxxx   → <前缀>xxx        (前缀原样，如 FSPlayer→IJKPlayer)
     #     R1b 下划线tag： _FSXxx  → _<前缀>Xxx       (ObjC枚举tag命名惯例，如 _FSSDLRotateType→_IJKSDLRotateType；
     #                 已核实源码无 XX_FS 结尾的其他命名，此规则零误伤)
     #     R2 下划线小写： fs_xxx  → <前缀小写>_xxx    (项目自有工具函数风格，如 fs_hls→ijk_hls)
     #     R3 驼峰小写：   fsXxx   → <前缀小写>Xxx     (仅当跟大写字母，避开 fsync/fseek/fstat 等 C 库函数)
-    #     R4 整词品牌：   fsplayer/fsrecord/fsmux → <前缀小写>player/record/mux (User-Agent值/日志前缀/线程名)
+    #     R4 整词品牌：   FSPlayer/fsrecord/fsmux → <前缀小写>player/record/mux (User-Agent值/日志前缀/线程名)
     #     R5 裸fs标识符： 独立单词 fs → <前缀小写>    (ff_ass_renderer.c/ijkmeta.c 各一个局部变量 char *fs=ptr
     #                 及其全部引用、注释里 "fs buitn-in" 文案；fsync/fseek 等因fs后跟小写字母不构成独立词，不受影响)
     #     不动：小写字母跟随的 fsr/fsh(ffmpeg核心变量)与 fsync 等 C 标准库函数
     find ijkmedia -type f \( -name "*.h" -o -name "*.m" -o -name "*.mm" -o -name "*.c" -o -name "*.cpp" -o -name "*.metal" -o -name "*.sh" \) -print0 |
-        xargs -0 sed -i '' -E -e "s/[[:<:]]FS([A-Za-z0-9_]+)/${SYMBOL_PREFIX}\1/g" -e "s/_FS([A-Z][A-Za-z0-9_]+)/_${SYMBOL_PREFIX}\1/g" -e "s/[[:<:]]fs_([A-Za-z0-9_]+)/${SYMBOL_PREFIX_LOWER}_\1/g" -e "s/[[:<:]]fs([A-Z][A-Za-z0-9_]+)/${SYMBOL_PREFIX_LOWER}\1/g" -e "s/[[:<:]]fsplayer[[:>:]]/${SYMBOL_PREFIX_LOWER}player/g" -e "s/[[:<:]]fsrecord[[:>:]]/${SYMBOL_PREFIX_LOWER}record/g" -e "s/[[:<:]]fsmux[[:>:]]/${SYMBOL_PREFIX_LOWER}mux/g" -e "s/[[:<:]]fs[[:>:]]/${SYMBOL_PREFIX_LOWER}/g"
+        xargs -0 sed -i '' -E -e "s/[[:<:]]FS([A-Za-z0-9_]+)/${SYMBOL_PREFIX}\1/g" -e "s/_FS([A-Z][A-Za-z0-9_]+)/_${SYMBOL_PREFIX}\1/g" -e "s/[[:<:]]fs_([A-Za-z0-9_]+)/${SYMBOL_PREFIX_LOWER}_\1/g" -e "s/[[:<:]]fs([A-Z][A-Za-z0-9_]+)/${SYMBOL_PREFIX_LOWER}\1/g" -e "s/[[:<:]]FSPlayer[[:>:]]/${SYMBOL_PREFIX_LOWER}player/g" -e "s/[[:<:]]fsrecord[[:>:]]/${SYMBOL_PREFIX_LOWER}record/g" -e "s/[[:<:]]fsmux[[:>:]]/${SYMBOL_PREFIX_LOWER}mux/g" -e "s/[[:<:]]fs[[:>:]]/${SYMBOL_PREFIX_LOWER}/g"
     sed -i '' -E "s/[[:<:]]FS([A-Za-z0-9_]+)/${SYMBOL_PREFIX}\1/g" module-ios.modulemap module-macos.modulemap module-tvos.modulemap
     # 6.2 文件改名：FS* → <前缀>*、fs* → <前缀小写>*(内容引用已在6.1同步替换)
     find ijkmedia -type f \( -name "FS*" -o -name "fs*" \) | while read -r f; do
@@ -483,18 +483,18 @@ if [[ "$LIBS" == "auto" ]]; then
     echo "  自动探测库集(依据仓库 ffmpeg.sh 软链): $LIBS"
 fi
 for p in "${PLATS[@]}"; do
-    echo "  安装 $p 库集: $LIBS (下载中，首次约需几分钟；此阶段无输出属正常，实时日志: tail -f /tmp/fsplayer-install-$p.log)"
-    bash FFToolChain/main.sh install -p "$p" -l "$LIBS" >/tmp/fsplayer-install-$p.log 2>&1 || {
-        echo "❌ $p 库安装失败，详见 /tmp/fsplayer-install-$p.log"; exit 1; }
+    echo "  安装 $p 库集: $LIBS (下载中，首次约需几分钟；此阶段无输出属正常，实时日志: tail -f /tmp/FSPlayer-install-$p.log)"
+    bash FFToolChain/main.sh install -p "$p" -l "$LIBS" >/tmp/FSPlayer-install-$p.log 2>&1 || {
+        echo "❌ $p 库安装失败，详见 /tmp/FSPlayer-install-$p.log"; exit 1; }
     # 校验关键产物确实落位(install 对下载404不总是报错，必须显式验证)
     [[ -d "FFToolChain/build/product/$p/universal/ffmpeg/lib" ]] || {
-        echo "❌ $p 的 ffmpeg 库未落位(疑似下载404)，详见 /tmp/fsplayer-install-$p.log"; exit 1; }
+        echo "❌ $p 的 ffmpeg 库未落位(疑似下载404)，详见 /tmp/FSPlayer-install-$p.log"; exit 1; }
 done
 
 # ==================== 生成工程 ====================
 
 echo "▶ [5/7] 生成 Xcode 工程"
-./generate-proj.sh >/tmp/fsplayer-xcodegen.log 2>&1 || { echo "❌ 工程生成失败，详见 /tmp/fsplayer-xcodegen.log"; exit 1; }
+./generate-proj.sh >/tmp/FSPlayer-xcodegen.log 2>&1 || { echo "❌ 工程生成失败，详见 /tmp/FSPlayer-xcodegen.log"; exit 1; }
 [[ -d "$NAME.xcodeproj" ]] || { echo "❌ 未生成 $NAME.xcodeproj"; exit 1; }
 
 # ==================== 编译 ====================
@@ -513,8 +513,8 @@ build_slice() {
     ( cd "$absdir" && \
       xcodebuild -project "$NAME.xcodeproj" -target "$NAME-$suffix" \
         -configuration Release -sdk "$sdk" "${archs[@]}" BUILD_DIR="$absdir" \
-        clean build > "/tmp/fsplayer-build-$plat-$sdk.log" 2>&1 ) || {
-        echo "❌ 构建失败，详见 /tmp/fsplayer-build-$plat-$sdk.log"; exit 1; }
+        clean build > "/tmp/FSPlayer-build-$plat-$sdk.log" 2>&1 ) || {
+        echo "❌ 构建失败，详见 /tmp/FSPlayer-build-$plat-$sdk.log"; exit 1; }
 }
 
 for p in "${PLATS[@]}"; do
@@ -538,15 +538,15 @@ done
 
 echo "▶ [7/7] 输出产物"
 
-FW_DIR="$OUTPUT_ROOT/$NAME/frameworks"
+FW_DIR="$OUTPUT_ROOT/$NAME/Frameworks"
 mkdir -p "$FW_DIR"
 
-# 清理另一输出形态的陈旧产物，保证 frameworks/ 内容精确对应本次构建
-rm -rf "$FW_DIR/$NAME-frameworks" "$FW_DIR/$NAME.xcframework"
+# 清理另一输出形态的陈旧产物，保证 Frameworks/ 内容精确对应本次构建
+rm -rf "$FW_DIR/$NAME-Frameworks" "$FW_DIR/$NAME.xcframework"
 
 if [[ "$TYPE" == "xcframework" ]]; then
-    ( cd examples/xcframewrok && ./make-xcframework.sh > /tmp/fsplayer-xcframework.log 2>&1 ) || {
-        echo "❌ xcframework 合包失败，详见 /tmp/fsplayer-xcframework.log"; exit 1; }
+    ( cd examples/xcframewrok && ./make-xcframework.sh > /tmp/FSPlayer-xcframework.log 2>&1 ) || {
+        echo "❌ xcframework 合包失败，详见 /tmp/FSPlayer-xcframework.log"; exit 1; }
     rm -rf "$FW_DIR/$NAME.xcframework"
     cp -R "examples/xcframewrok/$NAME.xcframework" "$FW_DIR/"
     echo "  ✔ $FW_DIR/$NAME.xcframework ($(du -sh "$FW_DIR/$NAME.xcframework" | cut -f1))"
@@ -561,7 +561,7 @@ for lib in json.load(sys.stdin):
     echo "$SLICES"
 else
     copy_framework() { # copy_framework <平台> <源目录> <目标子目录名>  —— 只拷本次指定平台的切片
-        local src="examples/$2/$NAME.framework" dst="$FW_DIR/$NAME-frameworks/$3"
+        local src="examples/$2/$NAME.framework" dst="$FW_DIR/$NAME-Frameworks/$3"
         [[ " ${PLATS[*]} " == *" $1 "* ]] || return 0
         [[ -d "$src" ]] || return 0
         rm -rf "$dst"; mkdir -p "$dst"
@@ -569,13 +569,13 @@ else
         echo "    ✔ $dst/$NAME.framework  ($(lipo -info "$dst/$NAME.framework/$NAME" | sed 's/.*: //'))"
     }
     # 散包目录整体清空重建，保证内容精确对应本次构建(不残留上次其他平台的陈旧切片)
-    rm -rf "$FW_DIR/$NAME-frameworks"; mkdir -p "$FW_DIR/$NAME-frameworks"
+    rm -rf "$FW_DIR/$NAME-Frameworks"; mkdir -p "$FW_DIR/$NAME-Frameworks"
     copy_framework ios  ios/Release-iphoneos         ios-device
     [[ "$SIMULATOR" == "1" ]] && copy_framework ios  ios/Release-iphonesimulator  ios-simulator
     copy_framework tvos tvos/Release-appletvos       tvos-device
     [[ "$SIMULATOR" == "1" ]] && copy_framework tvos tvos/Release-appletvsimulator tvos-simulator
     copy_framework macos macos/Release                macos
-    SLICES="散装 framework 见 $FW_DIR/$NAME-frameworks/"
+    SLICES="散装 framework 见 $FW_DIR/$NAME-Frameworks/"
 fi
 
 # 预编译依赖库软链(ffmpeg/ass 等实际在源码仓内，软链便于一眼找到；不复制以免占双倍磁盘)
@@ -619,21 +619,21 @@ DOC_PATH="$(cd "$(dirname "$0")" && pwd)/IJKPlayerKit自编译使用说明.md"
 cat > "$WS_README" << README
 # 工作区说明
 
-- \`fsplayer/\` —— FSPlayer 源码仓库(git)。**想改播放器内核代码在这里改**（如 ijkmedia/ 下的 C 源码、渲染层等）
+- \`FSPlayer/\` —— FSPlayer 源码仓库(git)。**想改播放器内核代码在这里改**（如 ijkmedia/ 下的 C 源码、渲染层等）
 - \`Xcode工程/\` —— 编译用的 Xcode 工程入口(软链到源码仓内自动生成的工程)，双击即可在 IDE 里浏览代码、修改、构建
-- \`frameworks/\` —— 编译产物与构建信息(含模块名/符号前缀等关键信息)
+- \`Frameworks/\` —— 编译产物与构建信息(含模块名/符号前缀等关键信息)
 - \`预编译依赖库/\` —— 软链，指向源码内 FFToolChain/build/product（ffmpeg/ass 等官方预编译包的实际位置）
 
 ## 修改代码后重新编译
 
 \`\`\`bash
-# 1. 在 fsplayer/ 里修改源码
+# 1. 在 FSPlayer/ 里修改源码
 # 2. 重跑构建脚本(会自动检测到本地修改并保留，跳过版本更新)：
 bash "${SCRIPT_PATH}" -y
-# 3. 产物在 frameworks/
+# 3. 产物在 Frameworks/
 
 # 放弃自己的修改、回到上游状态(之后务必重跑一次构建脚本，让源码改名与Xcode工程重新对齐)：
-cd fsplayer && git checkout -- . && git clean -fd
+cd FSPlayer && git checkout -- . && git clean -fd
 \`\`\`
 
 ## 换名字 / 换符号前缀 / 换版本 / 只出某平台
@@ -650,9 +650,9 @@ fi
 echo ""
 echo "==================== ✅ 构建完成 ===================="
 echo "工作区: $OUTPUT_ROOT/$NAME/"
-echo "  ├── fsplayer/        源码(改代码在这里)"
+echo "  ├── FSPlayer/        源码(改代码在这里)"
 echo "  ├── Xcode工程/        编译工程入口(双击 $NAME.xcodeproj 可在IDE浏览/构建)"
-echo "  ├── frameworks/      产物(见构建信息.txt)"
+echo "  ├── Frameworks/      产物(见构建信息.txt)"
 echo "  └── 预编译依赖库/     ffmpeg/ass 等预编译包(软链)"
 if [[ "$RENAME_SYMBOLS" == "1" ]]; then
     echo "模块名(import用): $NAME  |  符号前缀: $SYMBOL_PREFIX(类名如 ${SYMBOL_PREFIX}Player)与${SYMBOL_PREFIX_LOWER}_小写工具函数"

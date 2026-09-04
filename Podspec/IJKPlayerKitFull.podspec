@@ -1,13 +1,13 @@
 Pod::Spec.new do |ijk|
 
-  ijk.name         = "IJKPlayerKitLite"
+  ijk.name         = "IJKPlayerKitFull"
   ijk.version      = "1.0.0"
   ijk.summary      = "基于IJKPlayer编译封装的直播播放器(也可作为视屏播放器)，支持RTMP/RTMPS/RTMPT/RTMPE/RTSP/HLS/HTTP(S)-FLV/KMP 等直播协议与MP4、FLV等格式， 支持录屏功能"
   ijk.description  = <<-DESC
                           集成注意事项：
                           使用cocoapods官方源
                           source 'https://github.com/CocoaPods/Specs.git'
-                          pod 'IJKPlayerKitLite'
+                          pod 'IJKPlayerKitFull'
                    DESC
 
   ijk.author       = { "官人" => "aiguanren@icloud.com" }
@@ -21,24 +21,15 @@ Pod::Spec.new do |ijk|
   ijk.ios.deployment_target = "13.0"      
 
   ijk.source       = { :http => "https://github.com/aiguanren/IJKPlayerKit/releases/download/1.0.0/IJKPlayerKit.zip" }
-  ijk.swift_versions = ["5"]
+  ijk.swift_versions = ["5.0"]
   ijk.requires_arc = true
   #ijk.static_framework = true
-  ijk.vendored_frameworks = "IJKPlayerKit/arm64/IJKMediaPlayer.xcframework"
+  ijk.vendored_frameworks = "IJKPlayerKit/arm64&x86_64/IJKMediaPlayer.xcframework"
 
   # 系统库
   ijk.libraries = "c++", "z", "bz2"
 
   # 系统框架
   ijk.frameworks = "UIKit", "AudioToolbox", "CoreGraphics", "AVFoundation", "CoreMedia", "CoreVideo", "MediaPlayer", "CoreServices", "Metal", "QuartzCore", "VideoToolbox"
-
-  # 设置编译环境
-  ijk.pod_target_xcconfig = {
-    "EXCLUDED_ARCHS[sdk=iphonesimulator*]" => "arm64", # 过滤模拟器arm64，解决M系列芯片MAC上模拟器架构问题
-    # 模拟器环境下清空IJKPlayerKitLite.xcframework相关的链接，避免链接导致的验证不通过与编译错误
-    "OTHER_LDFLAGS[sdk=iphonesimulator*]" => "",
-    "LD_RUNPATH_SEARCH_PATHS[sdk=iphonesimulator*]" => "",
-    # 模拟器环境下清空IJKPlayerKitLite.xcframework相关的链接，避免链接导致的验证不通过与编译错误
-  }
   
 end
